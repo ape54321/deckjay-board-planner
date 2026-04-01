@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Deck Board Planner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Manrope:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="brand-block">
+          <img
+            class="brand-mark"
+            src="./logo-color.png"
+            alt="DeckJay bird logo"
+          />
+          <div>
+            <p class="brand-name">DeckJay</p>
+            <p class="brand-subtitle">Board Layout Planner</p>
+          </div>
+        </div>
+
+        <nav class="top-nav" aria-label="Primary">
+          <a class="nav-link active" href="#">Dashboard</a>
+          <a class="nav-link" href="#">Board Planner</a>
+          <a class="nav-link" href="#">Field Check</a>
+        </nav>
+
+        <div class="account-block">
+          <span class="status-pill">Prototype</span>
+          <span class="account-name">deckjay pilot</span>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <section class="planner-pane">
+          <div class="pane-head">
+            <div>
+              <p class="eyebrow">DeckJay Layout Tool</p>
+              <h1>Plan the board field before the sliver shows up.</h1>
+            </div>
+            <div class="tab-row" aria-label="View selector" role="tablist">
+              <button
+                class="tab active"
+                id="planner-tab"
+                type="button"
+                role="tab"
+                aria-selected="true"
+                aria-controls="planner-view"
+                data-view-target="planner-view"
+              >
+                Planner
+              </button>
+              <button
+                class="tab"
+                id="field-notes-tab"
+                type="button"
+                role="tab"
+                aria-selected="false"
+                aria-controls="field-notes-view"
+                data-view-target="field-notes-view"
+              >
+                Field Notes
+              </button>
+            </div>
+          </div>
+
+          <div class="chat-shell">
+            <section class="view-panel" id="planner-view" role="tabpanel" aria-labelledby="planner-tab">
+              <div class="message message-system">
+                Tell me the deck span, the actual board face width, and the spacer
+                size you plan to use. I’ll compare the perfect layout, an expected
+                layout that stays close to perfect, and a wider possible drift case.
+              </div>
+
+              <form class="planner-card" id="planner-form" novalidate>
+                <div class="field-grid">
+                  <label class="field">
+                    <span>Deck span to cover</span>
+                    <input
+                      id="deck-span"
+                      name="deck-span"
+                      type="text"
+                      inputmode="text"
+                      placeholder="12' 6&quot; or 150"
+                      value="12' 0&quot;"
+                      autocomplete="off"
+                    />
+                    <small>Use feet and inches or total inches.</small>
+                  </label>
+
+                  <label class="field">
+                    <span>Actual board face width</span>
+                    <input
+                      id="board-width"
+                      name="board-width"
+                      type="text"
+                      inputmode="text"
+                      placeholder='5 1/2'
+                      value="5 1/2"
+                      autocomplete="off"
+                    />
+                    <small>Use inches. Fractions like 5 1/2 are fine.</small>
+                  </label>
+
+                  <label class="field">
+                    <span>Theoretical board spacing</span>
+                    <input
+                      id="board-gap"
+                      name="board-gap"
+                      type="text"
+                      inputmode="text"
+                      placeholder="3/16 or .1875"
+                      value="3/16"
+                      autocomplete="off"
+                    />
+                    <small>Enter the spacer or hidden-fastener gap you intend to use.</small>
+                  </label>
+                </div>
+
+                <div class="form-footer">
+                  <p class="error" id="form-error" aria-live="polite"></p>
+                  <button type="submit">Run layout</button>
+                </div>
+              </form>
+
+              <div class="message message-user">
+                Show me the expected last board, but also the possible range if the
+                field spacing starts opening up.
+              </div>
+
+              <section class="summary-card">
+                <p class="summary-label">Builder Summary</p>
+                <p class="summary-text" id="summary-text">
+                  Add your three inputs to see the board count, expected last board,
+                  possible range, and field-check range.
+                </p>
+              </section>
+
+              <section class="results-panel" aria-live="polite">
+                <div class="result-grid">
+                  <article class="result-card accent">
+                    <p class="result-label">Target Gap</p>
+                    <p class="result-value" id="gap-range-value">--</p>
+                    <p class="result-note" id="gap-range-note">
+                      This is the spacing you are trying to hold in the field.
+                    </p>
+                  </article>
+
+                  <article class="result-card">
+                    <p class="result-label">Whole Boards</p>
+                    <p class="result-value" id="whole-boards-value">--</p>
+                    <p class="result-note" id="whole-boards-note">
+                      Full boards across the field, shown as a range when spacing shifts.
+                    </p>
+                  </article>
+
+                  <article class="result-card">
+                    <p class="result-label">Expected Last Board</p>
+                    <p class="result-value" id="last-board-value">--</p>
+                    <div class="scenario-plot" aria-hidden="true">
+                      <div class="scenario-track"></div>
+                      <div class="scenario-range"></div>
+                      <div class="scenario-stop perfect" id="last-board-perfect-stop">
+                        <span class="scenario-heading">Perfect</span>
+                        <span class="scenario-value" id="last-board-perfect-value">--</span>
+                        <span class="scenario-marker"></span>
+                      </div>
+                      <div class="scenario-stop expected" id="last-board-expected-stop">
+                        <span class="scenario-heading">Likely</span>
+                        <span class="scenario-value" id="last-board-expected-value">--</span>
+                        <span class="scenario-marker"></span>
+                      </div>
+                      <div class="scenario-stop possible" id="last-board-possible-stop">
+                        <span class="scenario-heading">Wide</span>
+                        <span class="scenario-value" id="last-board-possible-value">--</span>
+                        <span class="scenario-marker"></span>
+                      </div>
+                    </div>
+                    <div class="scenario-legend">
+                      <div class="scenario-legend-item">
+                        <span class="legend-swatch perfect"></span>
+                        <span class="legend-copy">Theoretical spacing achieved every time (perfect)</span>
+                      </div>
+                      <div class="scenario-legend-item">
+                        <span class="legend-swatch expected"></span>
+                        <span class="legend-copy">Likely width due to small occasional board bounce back while fastening</span>
+                      </div>
+                      <div class="scenario-legend-item">
+                        <span class="legend-swatch possible"></span>
+                        <span class="legend-copy">Wide gap case</span>
+                      </div>
+                    </div>
+                    <p class="result-note" id="last-board-note">
+                      The turquoise marker shows the expected result. The whisker shows how far the last board can drift.
+                    </p>
+                  </article>
+
+                  <article class="result-card">
+                    <p class="result-label">Buy This Many Boards</p>
+                    <p class="result-value" id="purchase-count-value">--</p>
+                    <p class="result-note" id="purchase-count-note">
+                      Safe buy count using the tighter gap so you do not come up short.
+                    </p>
+                  </article>
+
+                  <article class="result-card">
+                    <p class="result-label">Sliver Check</p>
+                    <p class="result-value" id="sliver-warning-value">--</p>
+                    <p class="result-note" id="sliver-warning-note">
+                      Flags the layout if either last-board scenario falls under 2 in.
+                    </p>
+                  </article>
+
+                  <article class="result-card">
+                    <p class="result-label">Five Boards Left Check</p>
+                    <p class="result-value" id="five-board-check-value">--</p>
+                    <p class="result-note" id="five-board-check-note">
+                      Remaining open space to expect when you are down to the last 5 boards.
+                    </p>
+                  </article>
+                </div>
+              </section>
+            </section>
+
+            <section
+              class="view-panel"
+              id="field-notes-view"
+              role="tabpanel"
+              aria-labelledby="field-notes-tab"
+              hidden
+            >
+              <section class="notes-card">
+                <p class="summary-label">Field Notes</p>
+                <h3 class="notes-title">Use this when you’re laying the last run.</h3>
+                <p class="notes-copy" id="field-notes-summary">
+                  Run the layout first, then flip here for the quick field checklist.
+                </p>
+
+                <div class="notes-grid">
+                  <article class="note-item">
+                    <p class="note-label">Target Gap</p>
+                    <p class="note-value" id="field-gap-range">--</p>
+                    <p class="note-copy">This is the spacer target, not the last-board range.</p>
+                  </article>
+
+                  <article class="note-item">
+                    <p class="note-label">Expected Last Board</p>
+                    <p class="note-value" id="field-last-board">--</p>
+                    <p class="note-copy">Expected answer stays close to perfect. Compare it against the possible range above.</p>
+                  </article>
+
+                  <article class="note-item">
+                    <p class="note-label">Five Boards Left</p>
+                    <p class="note-value" id="field-five-check">--</p>
+                    <p class="note-copy">Measure the open space when only 5 boards remain.</p>
+                  </article>
+
+                  <article class="note-item">
+                    <p class="note-label">Sliver Risk</p>
+                    <p class="note-value" id="field-sliver-risk">--</p>
+                    <p class="note-copy">If this says sliver, consider rebalancing the layout before the finish edge.</p>
+                  </article>
+                </div>
+
+                <ol class="notes-list">
+                  <li>Snap a quick measure for the total open span before you start the field.</li>
+                  <li>Check the target gap so the crew knows what they are aiming to hold.</li>
+                  <li>When you’re down to the last 5 boards, compare the actual opening to the target range above.</li>
+                  <li>If the opening is running tight, shift the layout before the last board becomes a sliver.</li>
+                </ol>
+              </section>
+            </section>
+          </div>
+        </section>
+
+        <aside class="summary-pane">
+          <section class="estimate-card">
+            <p class="eyebrow">Running Layout</p>
+            <h2>Project Snapshot</h2>
+
+            <div class="estimate-block">
+              <span class="estimate-label">Target Gap</span>
+              <strong class="estimate-value" id="gap-range-echo">Live in planner</strong>
+            </div>
+
+            <div class="estimate-block">
+              <span class="estimate-label">Last Board</span>
+              <strong class="estimate-value" id="last-board-echo">Watch the rip width</strong>
+            </div>
+
+            <div class="estimate-divider"></div>
+
+            <div class="metric-row">
+              <span>Whole Boards</span>
+              <strong id="whole-boards-echo">--</strong>
+            </div>
+            <div class="metric-row">
+              <span>Buy Count</span>
+              <strong id="purchase-count-echo">--</strong>
+            </div>
+            <div class="metric-row">
+              <span>Sliver Risk</span>
+              <strong id="sliver-warning-echo">--</strong>
+            </div>
+            <div class="metric-row">
+              <span>Five Left Check</span>
+              <strong id="five-board-check-echo">--</strong>
+            </div>
+          </section>
+
+          <section class="tips-card" id="tips-card">
+            <p class="tips-title">Field Note</p>
+            <p class="tips-text" id="tips-text">
+              Expected results stay close to perfect spacing, while the possible
+              range allows for drift out to theoretical plus 1/16 in. per gap.
+            </p>
+          </section>
+        </aside>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
