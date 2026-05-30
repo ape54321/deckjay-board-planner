@@ -6,6 +6,11 @@ const SLIVER_THRESHOLD = 2;
 const FRACTION_BASE = 16;
 const FIVE_BOARD_CHECK_PIECES = 5;
 
+// Supabase configuration
+const SUPABASE_URL = "https://qxyioeyiahejkxyzendu.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4eWlvZXlpYWhlamtoeXplbmR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjcyOTYsImV4cCI6MjA2MzUwMzI5Nn0.fS8p8WwSqqh-YVw6zc4GMhGrGIHGZP38cTbxOLzE8rM";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 const form = document.getElementById("planner-form");
 const deckSpanInput = document.getElementById("deck-span");
 const boardWidthInput = document.getElementById("board-width");
@@ -551,3 +556,165 @@ viewTabs.forEach((tab) => {
 });
 setActiveView("planner-view");
 handleSubmit(new Event("submit"));
+
+// Client/Job dropdown functionality
+const jobSelect = document.getElementById("job-select");
+const addClientBtn = document.getElementById("add-client-btn");
+const addClientModal = document.getElementById("add-client-modal");
+const addClientForm = document.getElementById("add-client-form");
+const newClientNameInput = document.getElementById("new-client-name");
+const modalError = document.getElementById("modal-error");
+const modalCloseBtn = document.getElementById("modal-close-btn");
+const modalCancelBtn = document.getElementById("modal-cancel-btn");
+const modalSubmitBtn = document.getElementById("modal-submit-btn");
+const clientEcho = document.getElementById("client-echo");
+
+async function loadClients() {
+  try {
+    const { data, error } = await supabase
+      .from("jobs")
+      .select("id, name")
+      .eq("is_active", true)
+      .order("name", { ascending: true });
+
+    if (error) {
+      console.error("Error loading clients:", error);
+      return;
+    }
+
+    // Clear existing options except the placeholder
+    while (jobSelect.options.length > 1) {
+      jobSelect.remove(1);
+    }
+
+    // Add clients to dropdown
+    data.forEach((job) => {
+      const option = document.createElement("option");
+      option.value = job.id;
+      option.textContent = job.name;
+      jobSelect.appendChild(option);
+    });
+
+    // Restore previously selected value if it exists
+    const savedJobId = localStorage.getItem("selectedJobId");
+    if (savedJobId) {
+      jobSelect.value = savedJobId;
+    }
+    updateClientEcho();
+  } catch (err) {
+    console.error("Failed to load clients:", err);
+  }
+}
+
+async function addClient(name) {
+  const trimmedName = name.trim();
+  
+  if (!trimmedName) {
+    throw new Error("Client name cannot be empty");
+  }
+
+  const { data, error } = await supabase
+    .from("jobs")
+    .insert([{ name: trimmedName }])
+    .select("id, name")
+    .single();
+
+  if (error) {
+    if (error.code === "23505") {
+      throw new Error("A client with this name already exists");
+    }
+    throw new Error(error.message || "Failed to add client");
+  }
+
+  return data;
+}
+
+function openModal() {
+  addClientModal.hidden = false;
+  newClientNameInput.value = "";
+  modalError.textContent = "";
+  newClientNameInput.focus();
+}
+
+function closeModal() {
+  addClientModal.hidden = true;
+  modalError.textContent = "";
+}
+
+async function handleAddClient(event) {
+  event.preventDefault();
+  
+  const clientName = newClientNameInput.value.trim();
+  
+  if (!clientName) {
+    modalError.textContent = "Please enter a client name.";
+    return;
+  }
+
+  modalSubmitBtn.disabled = true;
+  modalSubmitBtn.textContent = "Adding...";
+  modalError.textContent = "";
+
+  try {
+    const newClient = await addClient(clientName);
+    
+    // Add the new client to the dropdown
+    const option = document.createElement("option");
+    option.value = newClient.id;
+    option.textContent = newClient.name;
+    jobSelect.appendChild(option);
+    
+    // Select the newly added client
+    jobSelect.value = newClient.id;
+    localStorage.setItem("selectedJobId", newClient.id);
+    updateClientEcho();
+    
+    closeModal();
+  } catch (err) {
+    modalError.textContent = err.message;
+  } finally {
+    modalSubmitBtn.disabled = false;
+    modalSubmitBtn.textContent = "Add Client";
+  }
+}
+
+function updateClientEcho() {
+  const selectedOption = jobSelect.options[jobSelect.selectedIndex];
+  if (jobSelect.value && selectedOption) {
+    clientEcho.textContent = selectedOption.textContent;
+  } else {
+    clientEcho.textContent = "No client selected";
+  }
+}
+
+// Save selected job to localStorage for persistence
+jobSelect.addEventListener("change", () => {
+  if (jobSelect.value) {
+    localStorage.setItem("selectedJobId", jobSelect.value);
+  } else {
+    localStorage.removeItem("selectedJobId");
+  }
+  updateClientEcho();
+});
+
+// Modal event listeners
+addClientBtn.addEventListener("click", openModal);
+modalCloseBtn.addEventListener("click", closeModal);
+modalCancelBtn.addEventListener("click", closeModal);
+addClientForm.addEventListener("submit", handleAddClient);
+
+// Close modal on escape key or clicking outside
+addClientModal.addEventListener("click", (e) => {
+  if (e.target === addClientModal) {
+    closeModal();
+  }
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !addClientModal.hidden) {
+    closeModal();
+  }
+});
+
+// Load clients on page load
+loadClients();
