@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Plus, LogOut, Download, Play, Square, Clock, Edit2, Archive, Trash2 } from "lucide-react"
 import { JobSelector } from "@/components/job-selector"
-import { AddJobModal } from "@/components/add-job-modal"
+import { ManageJobsModal } from "@/components/manage-jobs-modal"
 
 interface WorkEntry {
   id: string
@@ -322,13 +322,13 @@ export function TrackerDashboard({ worklogId, workerName, isAdmin, onLogout }: T
           <div className="grid gap-4 md:grid-cols-[1fr,1fr,auto]">
             <div>
               <label className="block text-sm text-[var(--muted)] mb-1">Job Name</label>
-              <JobSelector
-                jobs={jobs}
-                value={timerJobName}
-                onChange={setTimerJobName}
-                onAddNew={() => setShowAddJob(true)}
-                disabled={isTimerRunning}
-              />
+<JobSelector
+                  jobs={jobs}
+                  value={timerJobName}
+                  onChange={setTimerJobName}
+                  onManageJobs={() => setShowAddJob(true)}
+                  disabled={isTimerRunning}
+                />
             </div>
             <div>
               <label className="block text-sm text-[var(--muted)] mb-1">Category</label>
@@ -374,12 +374,12 @@ export function TrackerDashboard({ worklogId, workerName, isAdmin, onLogout }: T
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div>
                 <label className="block text-sm text-[var(--muted)] mb-1">Job Name</label>
-                <JobSelector
-                  jobs={jobs}
-                  value={manualJobName}
-                  onChange={setManualJobName}
-                  onAddNew={() => setShowAddJob(true)}
-                />
+<JobSelector
+                    jobs={jobs}
+                    value={manualJobName}
+                    onChange={setManualJobName}
+                    onManageJobs={() => setShowAddJob(true)}
+                  />
               </div>
               <div>
                 <label className="block text-sm text-[var(--muted)] mb-1">Category</label>
@@ -542,13 +542,14 @@ export function TrackerDashboard({ worklogId, workerName, isAdmin, onLogout }: T
         </section>
       </main>
 
-      {/* Add Job Modal */}
-      {showAddJob && (
-        <AddJobModal
-          onClose={() => setShowAddJob(false)}
-          onJobAdded={handleJobAdded}
-        />
-      )}
+{/* Manage Jobs Modal */}
+        {showAddJob && (
+          <ManageJobsModal
+            jobs={jobs}
+            onClose={() => setShowAddJob(false)}
+            onJobsChanged={handleJobAdded}
+          />
+        )}
     </div>
   )
 }

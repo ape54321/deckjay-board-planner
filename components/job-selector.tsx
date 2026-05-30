@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Plus, ChevronDown } from "lucide-react"
+import { ChevronDown, Settings2 } from "lucide-react"
 
 interface Job {
   id: string
@@ -12,11 +12,11 @@ interface JobSelectorProps {
   jobs: Job[]
   value: string
   onChange: (value: string) => void
-  onAddNew: () => void
+  onManageJobs: () => void
   disabled?: boolean
 }
 
-export function JobSelector({ jobs, value, onChange, onAddNew, disabled }: JobSelectorProps) {
+export function JobSelector({ jobs, value, onChange, onManageJobs, disabled }: JobSelectorProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [inputValue, setInputValue] = useState(value)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -76,17 +76,18 @@ export function JobSelector({ jobs, value, onChange, onAddNew, disabled }: JobSe
         </div>
         <button
           type="button"
-          onClick={onAddNew}
+          onClick={onManageJobs}
           disabled={disabled}
-          className="flex items-center justify-center w-10 h-10 bg-[var(--accent)] hover:opacity-90 rounded-lg transition-colors disabled:opacity-50"
-          title="Add new client/job"
+          className="flex items-center justify-center gap-1.5 px-3 h-10 bg-[var(--card)] border border-[var(--card-border)] hover:border-[var(--accent)] hover:text-[var(--accent)] rounded-lg transition-colors disabled:opacity-50 text-sm font-medium"
+          title="Manage clients/jobs"
         >
-          <Plus size={20} />
+          <Settings2 size={16} />
+          <span className="hidden sm:inline">Manage</span>
         </button>
       </div>
 
       {isOpen && (
-        <div className="absolute z-20 top-full left-0 right-10 mt-1 max-h-48 overflow-y-auto bg-[var(--card)] border border-[var(--card-border)] rounded-lg shadow-xl">
+        <div className="absolute z-20 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-[var(--card)] border border-[var(--card-border)] rounded-lg shadow-xl">
           {filteredJobs.length === 0 ? (
             <div className="px-3 py-2 text-[var(--muted)] text-sm">
               {inputValue ? "No matching jobs found" : "No jobs available"}
@@ -105,17 +106,6 @@ export function JobSelector({ jobs, value, onChange, onAddNew, disabled }: JobSe
               </button>
             ))
           )}
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(false)
-              onAddNew()
-            }}
-            className="w-full text-left px-3 py-2 border-t border-[var(--card-border)] text-[var(--accent)] hover:bg-[var(--background)] transition-colors flex items-center gap-2"
-          >
-            <Plus size={16} />
-            Add new client/job
-          </button>
         </div>
       )}
     </div>
