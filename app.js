@@ -8,8 +8,8 @@ const FIVE_BOARD_CHECK_PIECES = 5;
 
 // Supabase configuration
 const SUPABASE_URL = "https://qxyioeyiahejkxyzendu.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4eWlvZXlpYWhlamtoeXplbmR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjcyOTYsImV4cCI6MjA2MzUwMzI5Nn0.fS8p8WwSqqh-YVw6zc4GMhGrGIHGZP38cTbxOLzE8rM";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4eWlvZXlpYWhlamt4eXplbmR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMTg2NDUsImV4cCI6MjA5Mjc5NDY0NX0.0HRjc5P3AHZkV9UPEK9KTL7Fk83x9XdB-pnLAqq9jwU";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const form = document.getElementById("planner-form");
 const deckSpanInput = document.getElementById("deck-span");
@@ -571,7 +571,7 @@ const clientEcho = document.getElementById("client-echo");
 
 async function loadClients() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from("jobs")
       .select("id, name")
       .eq("is_active", true)
@@ -613,7 +613,7 @@ async function addClient(name) {
     throw new Error("Client name cannot be empty");
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from("jobs")
     .insert([{ name: trimmedName }])
     .select("id, name")
